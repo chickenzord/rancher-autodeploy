@@ -1,0 +1,37 @@
+---
+version: '2'
+services:
+  redis:
+    image: redis:3.2-alpine
+
+  api:
+    build: .
+    command: rake app:api
+    environment:
+      REDIS_HOST: redis
+      RANCHER_URL: ${RANCHER_URL}
+      RANCHER_ACCESS_KEY: ${RANCHER_ACCESS_KEY}
+      RANCHER_SECRET_KEY: ${RANCHER_SECRET_KEY}
+      QUEUE: ${QUEUE}
+    ports:
+    - 80:8080
+    links:
+    - redis
+
+  worker:
+    build: .
+    command: rake app:worker
+    environment:
+      REDIS_HOST: redis
+      QUEUE: ${QUEUE}
+    links:
+    - redis
+
+  scheduler:
+    build: .
+    command: rake app:scheduler
+    environment:
+      REDIS_HOST: redis
+      QUEUE: ${QUEUE}
+    links:
+    - redis
