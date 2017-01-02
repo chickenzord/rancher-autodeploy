@@ -23,6 +23,10 @@ for key,val in config
 end
 puts '---'
 
+get "/ping" do
+  'pong'
+end
+
 get "/check/#{token}" do
   'OK'
 end
