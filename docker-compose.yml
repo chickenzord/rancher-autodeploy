@@ -12,7 +12,7 @@ services:
       RANCHER_URL: ${RANCHER_URL}
       RANCHER_ACCESS_KEY: ${RANCHER_ACCESS_KEY}
       RANCHER_SECRET_KEY: ${RANCHER_SECRET_KEY}
-      QUEUE: ${QUEUE}
+      UPGRADE_QUEUE: ${UPGRADE_QUEUE}
     ports:
     - 80:8080
     links:
@@ -23,7 +23,7 @@ services:
     command: rake app:worker
     environment:
       REDIS_HOST: redis
-      QUEUE: ${QUEUE}
+      QUEUE: *
     links:
     - redis
 
@@ -32,6 +32,6 @@ services:
     command: rake app:scheduler
     environment:
       REDIS_HOST: redis
-      QUEUE: ${QUEUE}
+      QUEUE: *
     links:
     - redis

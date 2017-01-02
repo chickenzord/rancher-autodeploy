@@ -9,9 +9,7 @@ enable :logging
 set :bind, '0.0.0.0'
 set :port, '8080'
 
-config = ENV.select { |k,v|
-  k.start_with?("RANCHER_") or k.start_with?("AUTODEPLOY_")
-}
+config = ENV.select { |k,v| k.start_with?("RANCHER_") }
 
 redis_host = ENV['REDIS_HOST'] || 'localhost'
 redis_port = ENV['REDIS_PORT'] || '6379'

@@ -6,7 +6,7 @@ require 'json'
 
 class Upgrade
 
-  @queue = ENV['QUEUE'] || :rancher_upgrade
+  @queue = ENV['UPGRADE_QUEUE'] || :rancher_upgrade
 
   def self.before_perform (image_uuid, config, service=nil)
     @config = config
