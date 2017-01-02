@@ -1,0 +1,11 @@
+.bundle/
+.git/
+.gitignore
+.dockerignore
+
+docker-compose.yml
+Dockerfile
+
+.ruby-version
+*.log
+*.md
