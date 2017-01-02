@@ -10,10 +10,12 @@ set :bind, '0.0.0.0'
 set :port, '8080'
 
 config = ENV.select { |k,v| k.start_with?("RANCHER_") }
-
+token = ENV['TOKEN']
 redis_host = ENV['REDIS_HOST'] || 'localhost'
 redis_port = ENV['REDIS_PORT'] || '6379'
 Resque.redis = "#{redis_host}:#{redis_port}"
+
+raise "TOKEN required" if !token
 
 puts '---'
 for key,val in config
@@ -21,7 +23,11 @@ for key,val in config
 end
 puts '---'
 
-post '/hook' do
+get "/check/#{token}" do
+  'OK'
+end
+
+post "/hook/#{token}" do
   content_type :json
 
   request.body.rewind
