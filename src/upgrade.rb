@@ -18,6 +18,7 @@ class Upgrade
   end
 
   def self.perform (image_uuid, config, service=nil)
+    @logger.info ">>> BEGIN #{image_uuid} (#{config['RANCHER_URL']})"
     @config = config
 
     if service == nil
@@ -45,16 +46,18 @@ class Upgrade
     for service in target_services
       if service[:state] == 'upgraded'
         @logger.info "Service #{service[:name]} is in upgraded state, confirming..."
-        response = self.service_action(service, 'finishupgrade')
+        self.service_action(service, 'finishupgrade')
         Resque.enqueue_in(30, self, image_uuid, config, service)
       elsif service[:state] == 'active'
         params = self.create_data service[:image_uuid]
-        response = self.service_action(service, 'upgrade', params=params)
+        self.service_action(service, 'upgrade', params=params)
       else
-        @logger.info "Service #{service[:name]} cannot be upgraded, retrying in 30s..."
+        @logger.info "Service #{service[:name]} is in state #{service[:state]}, retrying in 30s..."
         Resque.enqueue_in(30, self, image_uuid, config, service)
       end
     end
+
+    @logger.info "<<< END"
   end
 
   # helper
