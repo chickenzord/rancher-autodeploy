@@ -21,13 +21,13 @@ class Upgrade
     @logger.info ">>> BEGIN #{image_uuid} (#{config['RANCHER_URL']})"
     @config = config
 
-    if service == nil
+    if service == nil or service.keys.size == 0
       @logger.info "Finding services with image #{image_uuid}"
       response = self.rancher_api(:get, '/services')
       services = response.body['data']
     else
-      @logger.info "Finding service #{service[:name]} (#{service[:id]})"
-      response = self.rancher_api(:get, "/services/#{service[:id]}")
+      @logger.info "Finding service #{service['name']} (#{service['id']})"
+      response = self.rancher_api(:get, "/services/#{service['id']}")
       services = [response.body]
     end
 
@@ -35,24 +35,24 @@ class Upgrade
         .select { |s| s.at_path('launchConfig/imageUuid') == image_uuid }
         .map { |s|
           {
-            id: s['id'],
-            name: s['name'],
-            image_uuid: s['launchConfig']['imageUuid'],
-            state: s['state'],
+            'id'         => s['id'],
+            'name'       => s['name'],
+            'image_uuid' => s['launchConfig']['imageUuid'],
+            'state'      => s['state'],
           }
         }
     @logger.info "Found #{target_services.size} service(s) to upgrade"
 
     for service in target_services
-      if service[:state] == 'upgraded'
-        @logger.info "Service #{service[:name]} is in upgraded state, confirming..."
+      if service['state'] == 'upgraded'
+        @logger.info "Service #{service['name']} is in upgraded state, confirming..."
         self.service_action(service, 'finishupgrade')
         Resque.enqueue_in(30, self, image_uuid, config, service)
-      elsif service[:state] == 'active'
-        params = self.create_data service[:image_uuid]
+      elsif service['state'] == 'active'
+        params = self.create_data service['image_uuid']
         self.service_action(service, 'upgrade', params=params)
       else
-        @logger.info "Service #{service[:name]} is in state #{service[:state]}, retrying in 30s..."
+        @logger.info "Service #{service['name']} is in state #{service['state']}, retrying in 30s..."
         Resque.enqueue_in(30, self, image_uuid, config, service)
       end
     end
@@ -104,8 +104,8 @@ class Upgrade
 
   # helper
   def self.service_action(service, action, params = {})
-    @logger.info "[#{action}] #{service[:name]} (#{service[:id]})"
-    self.rancher_api(:post, "/services/#{service[:id]}?action=#{action}", params=params)
+    @logger.info "[#{action}] #{service['name']} (#{service['id']})"
+    self.rancher_api(:post, "/services/#{service['id']}?action=#{action}", params=params)
   end
 
 end
