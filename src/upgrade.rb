@@ -62,14 +62,15 @@ class Upgrade
   end
 
   # helper
-  def self.create_data (service, start_first=true)
+  def self.create_data (service, start_first=false)
     launch_config = service['launch_config']
     launch_config['labels']['io.rancher.container.pull_image'] = 'always'
 
     return {
       'inServiceStrategy' => {
         'launchConfig' => launch_config,
-        'startFirst' => start_first
+        'startFirst' => start_first,
+        'fullUpgrade' => true
       },
       'toServiceStrategy' => nil
     }
