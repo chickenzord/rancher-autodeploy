@@ -35,10 +35,11 @@ class Upgrade
         .select { |s| s.at_path('launchConfig/imageUuid') == image_uuid }
         .map { |s|
           {
-            'id'         => s['id'],
-            'name'       => s['name'],
-            'image_uuid' => s['launchConfig']['imageUuid'],
-            'state'      => s['state'],
+            'id'            => s['id'],
+            'name'          => s['name'],
+            'image_uuid'    => s['launchConfig']['imageUuid'],
+            'state'         => s['state'],
+            'launch_config' => s['launchConfig'],
           }
         }
     @logger.info "Found #{target_services.size} service(s) to upgrade"
@@ -49,7 +50,7 @@ class Upgrade
         self.service_action(service, 'finishupgrade')
         Resque.enqueue_in(30, self, image_uuid, config, service)
       elsif service['state'] == 'active'
-        params = self.create_data service['image_uuid']
+        params = self.create_data(service)
         self.service_action(service, 'upgrade', params=params)
       else
         @logger.info "Service #{service['name']} is in state #{service['state']}, retrying in 30s..."
@@ -61,18 +62,16 @@ class Upgrade
   end
 
   # helper
-  def self.create_data (image_uuid, start_first=true)
-    {
-      inServiceStrategy: {
-        launchConfig: {
-          imageUuid: image_uuid,
-          labels: {
-            "io.rancher.container.pull_image" => "always"
-          }
-        },
-        startFirst: start_first
+  def self.create_data (service, start_first=true)
+    launch_config = service['launch_config']
+    launch_config['labels']['io.rancher.container.pull_image'] = 'always'
+
+    return {
+      'inServiceStrategy' => {
+        'launchConfig' => launch_config,
+        'startFirst' => start_first
       },
-      toServiceStrategy: nil
+      'toServiceStrategy' => nil
     }
   end
 
